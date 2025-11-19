@@ -18,7 +18,7 @@ The dataset used is [`healthcare-dataset-stroke-data.csv`](https://www.kaggle.co
     
 -   **Target**: `stroke` (binary classification)
 
-# ETA
+# EDA
 
 The data is well-prepared except few missing values in `bmi`.
 The data preparation process is shown below: 
@@ -109,7 +109,7 @@ INFO:     Application startup complete.
 Open your web browser and navigate to:
 
 ```text
-http://localhost:8000
+http://localhost:8000/doc
 ```
 
 #### FastAPI Automatic Documentation
@@ -175,7 +175,8 @@ The API returns a JSON response with stroke prediction:
 3.  Click "Try it out"
     
 4.  Enter patient data and click "Execute"
-    
+
+[See how it would look like on your brower (video)](https://drive.google.com/file/d/1UiN0Eb22zt1v1giO0n15xG60JwALkcRV/view?usp=sharing)
 
 #### Method 2: Using the provided test script
 
