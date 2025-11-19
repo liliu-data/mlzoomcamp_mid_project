@@ -55,38 +55,219 @@ Before feeding the data to the model, we need to solve the extreme imbalance in 
 
 To see how I decided which method and the tuning process, please see [the notebook (mid_project)](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/mid_project.ipynb)
 
-# Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/liliu-data/mlzoomcamp_mid_project.git
-   cd mlzoomcamp_mid_project
+# Installation & Running the Web App
 
-2.  **Setup the environment**
+This project uses [`uv`](https://docs.astral.sh/uv/getting-started/installation/) for fast dependency management and `FastAPI` for the web framework. Follow these steps to set up and run the stroke prediction application.
+
+### Prerequisites
+
+-   Python 3.11+ (as specified in your project)
+    
+-   [uv](https://docs.astral.sh/uv/getting-started/installation/) package manager
+    
+
+### 1. Install with uv (Recommended)
+
 ```bash
-# Using uv (recommended)
-uv venv
-source .venv/bin/activate  # Linux/Mac
-# OR .venv\Scripts\activate  # Windows
 
-# Install dependencies
-uv pip install -r requirements.txt 
+# Clone the repository
+git clone https://github.com/liliu-data/mlzoomcamp_mid_project.git
+cd mlzoomcamp_mid_project
 ```
-3. **Train the model**
+
+#### Install dependencies with uv (creates a virtual environment automatically)
 ```bash
-python train.py
+uv sync
 ```
 
-4. **Run the API**
+#### Activate the virtual environment
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-**Using Docker**
-```
-# Build the image
-docker build -t stroke-prediction-api .
+### 2. Run the Web Application
 
-# Run the container
-docker run -p 8000:8000 stroke-prediction-api
+Start the FastAPI server with:
+
+```bash
+uvicorn predict:app --reload
 ```
+
+You should see output similar to:
+
+```text
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [X] using stateless reload
+INFO:     Started server process [X]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+```
+
+### 3. Access the Application
+
+Open your web browser and navigate to:
+
+```text
+http://localhost:8000
+```
+
+#### FastAPI Automatic Documentation
+
+FastAPI provides automatic interactive documentation:
+
+-   **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+    
+-   **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+    
+
+The docs pages allow you to test the stroke prediction API directly from your browser!
+
+![webservice](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/screenshots/webservice.png)
+
+----------
+
+## Using the Stroke Prediction API
+
+### API Endpoint
+
+**POST**  `/predict`
+
+### Request Format
+
+Send a JSON object with the following patient information:
+
+```json
+{
+    "gender": "male",
+    "age": 33.00,
+    "hypertension": 1,
+    "heart_disease": 0,
+    "ever_married": "yes",
+    "work_type": "private",
+    "residence_type": "rural",
+    "avg_glucose_level": 58.12,
+    "bmi": 32.5,
+    "smoking_status": "never_smoked"
+}
+```
+
+### Response Format
+
+The API returns a JSON response with stroke prediction:
+
+```json
+{
+  "stroke_probability": 0.07373718172311783,
+  "stroke": false
+}
+```
+
+
+### Testing the API
+
+#### Method 1: Using the Interactive Documentation
+
+1.  Visit [http://localhost:8000/docs](http://localhost:8000/docs)
+    
+2.  Find the `/predict` endpoint
+    
+3.  Click "Try it out"
+    
+4.  Enter patient data and click "Execute"
+    
+
+#### Method 2: Using the provided test script
+
+```bash
+# Make sure the server is running first, then:
+python test.py
+```
+
+#### Method 3: Using curl
+
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "gender": "male",
+    "age": 33.00,
+    "hypertension": 1,
+    "heart_disease": 0,
+    "ever_married": "yes",
+    "work_type": "private",
+    "residence_type": "rural",
+    "avg_glucose_level": 58.12,
+    "bmi": 32.5,
+    "smoking_status": "never_smoked"
+  }'
+```
+
+#### Method 4: Using Python requests
+
+```python
+import requests
+
+url = 'http://localhost:8000/predict'
+
+patient = {
+    'gender': 'male',
+    'age': 33.00,
+    'hypertension': 1,
+    'heart_disease': 0,
+    'ever_married': 'yes',
+    'work_type': 'private',
+    'residence_type': 'rural',
+    'avg_glucose_level': 58.12,
+    'bmi': 32.5,
+    'smoking_status': 'never_smoked',
+}
+
+response = requests.post(url, json=patient)
+predictions = response.json()
+
+if predictions['stroke']:
+    print(f"The patient is likely to have a stroke with a probability of {predictions['stroke_probability']}")
+else:
+    print(f"The patient is unlikely to have a stroke with a probability of {predictions['stroke_probability']}")
+
+```
+----------
+## Project Structure
+
+-   `predict.py` - Main FastAPI application with the prediction endpoint
+    
+-   `test.py` - Test script to verify the API is working
+    
+-   `uv.lock` - Dependency lock file for reproducible installs
+    
+-   `model/` - Directory containing your trained machine learning model
+    
+-   `preprocessor/` - Directory containing data preprocessing components
+    
+
+----------
+
+## Development
+
+For development, you also have access to:
+
+```bash
+# Install development dependencies (like requests)
+uv sync --dev
+```
+----------
+
+## Stopping the Application
+
+To stop the server, press `Ctrl+C` in your terminal.
+
+----------
+
+## Deployment Ready
+
+The application is ready for production deployment with:
+
+```bash
+
+uvicorn predict:app --host 0.0.0.0 --port $PORT
