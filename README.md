@@ -75,15 +75,18 @@ This project uses [`uv`](https://docs.astral.sh/uv/getting-started/installation/
 git clone https://github.com/liliu-data/mlzoomcamp_mid_project.git
 cd mlzoomcamp_mid_project
 ```
+#### Install uv
+```bash
+pip install uv
+```
+#### Initiate virtual environment
+```bash
+uv init
+``` 
 
 #### Install dependencies with uv (creates a virtual environment automatically)
 ```bash
-uv sync
-```
-
-#### Activate the virtual environment
-```bash
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv add scikit-learn fastapi uvicorn
 ```
 
 ### 2. Run the Web Application
@@ -91,7 +94,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 Start the FastAPI server with:
 
 ```bash
-uvicorn predict:app --reload
+uv run uvicorn predict:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 You should see output similar to:
