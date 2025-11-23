@@ -149,6 +149,7 @@ You'll see beautiful auto-generated documentation! ✨
 - Visit http://localhost:8000/docs
 - Click "Try it out" on `/predict`
 - Enter data & hit "Execute"
+
 🎥 **Watch it in action:**
 
 [![API Demo Video](https://img.youtube.com/vi/Ozj6kUKUoJI/0.jpg)](https://youtu.be/Ozj6kUKUoJI)
