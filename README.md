@@ -153,7 +153,7 @@ FastAPI provides automatic interactive documentation:
 
 The docs pages allow you to test the stroke prediction API directly from your browser!
 
-[https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/screenshots/webservice.png](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/screenshots/webservice.png)
+[`Screeshot of the Stroke Prediction API`](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/screenshots/webservice.png)
 
 ----------
 
