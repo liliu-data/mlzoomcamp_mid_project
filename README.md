@@ -84,7 +84,7 @@ cd mlzoomcamp_mid_project
 colima start
 ```
 
-```bash
+**Build Docker Image**
 ```bash
 docker build -t stroke-prediction-app .
 ```
@@ -98,10 +98,10 @@ docker run -p 8000:8000 stroke-prediction-app
 You should see output similar to:
 
 ```text
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [X] using stateless reload
-INFO:     Started server process [X]
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
 
 #### 4. Access the Application
