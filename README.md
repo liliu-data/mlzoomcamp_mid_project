@@ -25,7 +25,7 @@ I'm working with the [`healthcare-dataset-stroke-data.csv`](https://www.kaggle.c
 The dataset is pretty clean! Just a few missing BMI values that I filled with the mean. Here's what I discovered:
 
 **Distribution Overview:**
-![distribution](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/EDA/Stroke_Survivor_Distribution_Overview.jpg)
+![distribution](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/EDA/high_view.jpg)
 
 **Stroke Survivors:**
 ![survivors](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/EDA/Stroke_Survivor_Distribution_Overview.jpg)
