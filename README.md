@@ -18,7 +18,7 @@ The dataset used is [`healthcare-dataset-stroke-data.csv`](https://www.kaggle.co
     
 -   **Target**: `stroke` (binary classification)
 
-# ETA
+# EDA
 
 The data is well-prepared except few missing values in `bmi`.
 The data preparation process is shown below: 
@@ -79,6 +79,12 @@ cd mlzoomcamp_mid_project
 
 #### 2. Build the Docker Image
 
+**Start Docker daemon**
+```
+colima start
+```
+
+```bash
 ```bash
 docker build -t stroke-prediction-app .
 ```
