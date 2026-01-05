@@ -1,4 +1,4 @@
-# Welcome to MLZoomCamp Mid Project: Stroke Prediction (Revised)!
+# Welcome to MLZoomCamp Capstone 1 Project: Stroke Prediction !
 
 This project aims to build an end-to-end product that predicts stroke occurrences using machine learning techniques. **This revised version includes comprehensive model comparison (regression vs tree-based models) and cloud deployment capabilities.**
 
