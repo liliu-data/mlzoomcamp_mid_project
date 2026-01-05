@@ -1,6 +1,13 @@
-# Welcome to MLZoomCamp Mid Project: Stroke Prediction!
+# Welcome to MLZoomCamp Mid Project: Stroke Prediction (Revised)!
 
-This project aims to build an end-to-end product that predicts stroke occurrences using machine learning techniques. The dataset contains various health and demographic factors, and the goal is to build a predictive model that can identify individuals at risk of stroke.
+This project aims to build an end-to-end product that predicts stroke occurrences using machine learning techniques. **This revised version includes comprehensive model comparison (regression vs tree-based models) and cloud deployment capabilities.**
+
+## 🆕 What's New in This Revision
+
+- **Model Comparison**: Compares multiple ML models including Logistic Regression (regression) and tree-based models (Random Forest, XGBoost, LightGBM)
+- **Cloud Deployment**: Ready-to-deploy configurations for Google Cloud Platform (GCP) and AWS
+- **Enhanced API**: Supports predictions from all models with comparison capabilities
+- **Model Evaluation**: Comprehensive evaluation metrics and visualization tools
 
 # Data
 
@@ -9,160 +16,157 @@ The dataset used is [`healthcare-dataset-stroke-data.csv`](https://www.kaggle.co
 ## Features
 
 -   **Demographic**: `id`, `gender`, `age`
-    
 -   **Medical History**: `hypertension`, `heart_disease`
-    
 -   **Lifestyle**: `ever_married`, `work_type`, `residence_type`, `smoking_status`
-    
 -   **Health Metrics**: `avg_glucose_level`, `bmi`
-    
 -   **Target**: `stroke` (binary classification)
 
-# ETA
+# Data Preparation
 
 The data is well-prepared except few missing values in `bmi`.
-The data preparation process is shown below: 
+The data preparation process includes:
 
 -   Standardized column names (lowercase, underscores)
-    
 -   Handled missing values in BMI (filled with mean)
- 
- Overview distribution of all features:
- ![ditribution](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/EDA/Stroke_Survivor_Distribution_Overview.jpg)
 
-Stroke survivors distribution:
-![enter image description here](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/EDA/Stroke_Survivor_Distribution_Overview.jpg)
+Overview distribution of all features:
+![distribution](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/EDA/Stroke_Survivor_Distribution_Overview.jpg)
 
 Correlation with stroke heatmap:
-![enter image description here](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/EDA/correlation_heatmap.png)
+![correlation](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/EDA/correlation_heatmap.png)
 
-As we can see, the feature importance to the stroke is quite low in the numerical features. Mutual information analysis also shows low association among the features. 
+As we can see, the feature importance to the stroke is quite low in the numerical features. Mutual information analysis also shows low association among the features.
 
-    ever_married      0.007264
-    work_type         0.006085
-    heart_disease     0.005525
-    hypertension      0.005202
-    smoking_status    0.002798
-    residence_type    0.000094
-    gender            0.000092
-    dtype: float64
+# Model Comparison: Regression vs Tree-based Models
 
-# Model Selection - Class Imbalance
+This project compares multiple machine learning models to find the best performing one:
 
-Since the data is extremely imbalanced and our goal is to predict a binary target, I chose to use **XGBoost**  to train our model. 
+## Models Compared
 
-Before feeding the data to the model, we need to solve the extreme imbalance in our dataset. According to ChatGPT and the discussions on Kaggle, several resampling methods were recommended: XGBoost's built-in `use_scale_pos_weight `, **Simple resampling** by duplicating the minority, **SMOTE** (**Synthetic Minority Over-sampling Technique**), and **SMOTE-Tomek**. 
+### Regression Models
+- **Logistic Regression**: Linear model with balanced class weights
 
-To see how I decided which method and the tuning process, please see [the notebook (mid_project)](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/mid_project.ipynb)
+### Tree-based Models
+- **Random Forest**: Ensemble of decision trees with balanced class weights
+- **XGBoost**: Gradient boosting framework optimized for performance
+- **LightGBM**: Fast gradient boosting framework with leaf-wise tree growth
+
+## Model Training
+
+Run the training script to compare all models:
+
+```bash
+python train.py
+```
+
+This will:
+1. Load and preprocess the data
+2. Train all four models (Logistic Regression, Random Forest, XGBoost, LightGBM)
+3. Evaluate each model on test data
+4. Compare performance metrics (AUC, F1, Precision, Recall)
+5. Save the best performing model to `model.bin`
+6. Save all models and comparison results
+
+### Output Files
+
+After training, you'll get:
+- `model.bin` - Best performing model (for API use)
+- `models_all_YYYYMMDD_HHMMSS.bin` - All trained models
+- `model_comparison_YYYYMMDD_HHMMSS.json` - Comparison results in JSON
+- `model_comparison_YYYYMMDD_HHMMSS.csv` - Comparison results in CSV
+
+## Model Visualization
+
+Visualize model comparison results:
+
+```bash
+python compare_models.py
+```
+
+This generates `model_comparison_visualization.png` with:
+- AUC Score comparison
+- F1 Score comparison
+- Precision vs Recall comparison
+- Comprehensive metrics comparison
+
+## Class Imbalance Handling
+
+The dataset is extremely imbalanced (~5% stroke cases). We use **SMOTE-Tomek** (Synthetic Minority Over-sampling Technique combined with Tomek links) to handle this imbalance during training.
 
 ## How to Run the Application
 
-This project provides two ways to run the stroke prediction service: **locally with uv** or **using Docker** for containerized deployment.
-
 ### Prerequisites
 
--   **Option 1 (Local)**: Python 3.11+ and [uv](https://docs.astral.sh/uv/getting-started/installation/) package manager
-    
--   **Option 2 (Docker)**: [Docker](https://www.docker.com/products/docker-desktop/) installed on your system
-    
+- Python 3.11+
+- Docker (optional, for containerized deployment)
 
-### Method 1: Running with Docker (Recommended)
+### Method 1: Running Locally
 
-Docker provides a consistent, isolated environment that works the same way on any machine.
-
-#### 1. Clone the Repository
+#### 1. Install Dependencies
 
 ```bash
-git clone https://github.com/liliu-data/mlzoomcamp_mid_project.git
-cd mlzoomcamp_mid_project
+pip install -r requirements.txt
 ```
 
-#### 2. Build the Docker Image
+#### 2. Train Models (if not already done)
 
 ```bash
-docker build -t stroke-prediction-app .
-```
-
-#### 3. Run the Docker Container
-
-```bash
-docker run -p 8000:8000 stroke-prediction-app
-```
-
-You should see output similar to:
-
-```text
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [X] using stateless reload
-INFO:     Started server process [X]
-INFO:     Application startup complete.
-```
-
-#### 4. Access the Application
-
-Open your web browser and navigate to:
-
-```text
-http://localhost:8000/docs
-```
-
-### Method 2: Running Locally with uv
-
-#### 1. Clone and Setup
-
-```bash
-git clone https://github.com/liliu-data/mlzoomcamp_mid_project.git
-cd mlzoomcamp_mid_project
-```
-
-#### 2. Install uv and Dependencies
-
-```bash
-pip install uv
-uv sync
+python train.py
 ```
 
 #### 3. Run the Web Application
 
 ```bash
-uv run uvicorn predict:app --host 0.0.0.0 --port 8000 --reload
+uvicorn predict:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 #### 4. Access the Application
+
 Open your web browser and navigate to:
-```text
-http://localhost:8000/docs
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+### Method 2: Running with Docker
+
+#### 1. Build the Docker Image
+
+```bash
+docker build -t stroke-prediction-app .
 ```
 
-----------
+#### 2. Run the Docker Container
 
-## FastAPI Automatic Documentation
+```bash
+docker run -p 8000:8000 stroke-prediction-app
+```
 
-FastAPI provides automatic interactive documentation:
+#### 3. Access the Application
 
--   **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-    
--   **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
-    
+Open your web browser and navigate to:
+- http://localhost:8000/docs
 
-The docs pages allow you to test the stroke prediction API directly from your browser!
+## API Endpoints
 
-[https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/screenshots/webservice.png](https://github.com/liliu-data/mlzoomcamp_mid_project/blob/main/screenshots/webservice.png)
+### 1. Root Endpoint
 
-----------
+**GET** `/`
 
-## Using the Stroke Prediction API
+Returns API information and available endpoints.
 
-### API Endpoint
+### 2. Health Check
 
-**POST**  `/predict`
+**GET** `/health`
 
-### Request Format
+Returns API health status.
 
-Send a JSON object with the following patient information:
+### 3. Predict (Best Model)
 
+**POST** `/predict`
+
+Predict stroke probability using the best trained model.
+
+**Request:**
 ```json
-
 {
     "gender": "male",
     "age": 33.00,
@@ -177,44 +181,66 @@ Send a JSON object with the following patient information:
 }
 ```
 
-### Response Format
-
-The API returns a JSON response with stroke prediction:
-
+**Response:**
 ```json
-
 {
-  "stroke_probability": 0.07373718172311783,
-  "stroke": false
+    "stroke_probability": 0.0737,
+    "stroke": false,
+    "model_used": "XGBoost"
+}
+```
+
+### 4. Predict (All Models)
+
+**POST** `/predict/all`
+
+Get predictions from all available models for comparison.
+
+**Response:**
+```json
+{
+    "stroke_probability": 0.0737,
+    "stroke": false,
+    "model_used": "XGBoost",
+    "all_models": {
+        "Logistic Regression": {
+            "stroke_probability": 0.0650,
+            "stroke": false
+        },
+        "Random Forest": {
+            "stroke_probability": 0.0710,
+            "stroke": false
+        },
+        "XGBoost": {
+            "stroke_probability": 0.0737,
+            "stroke": false
+        },
+        "LightGBM": {
+            "stroke_probability": 0.0720,
+            "stroke": false
+        }
+    }
 }
 ```
 
 ### Testing the API
 
-#### Method 1: Using the Interactive Documentation
+#### Using the Interactive Documentation
 
-1.  Visit [http://localhost:8000/docs](http://localhost:8000/docs)
-    
-2.  Find the `/predict` endpoint
-    
-3.  Click "Try it out"
-    
-4.  Enter patient data and click "Execute"
-    
+1. Visit http://localhost:8000/docs
+2. Find the endpoint you want to test
+3. Click "Try it out"
+4. Enter patient data and click "Execute"
 
-[See how it would look like on your browser (video)](https://drive.google.com/file/d/1UiN0Eb22zt1v1giO0n15xG60JwALkcRV/view?usp=sharing)
-
-#### Method 2: Using the provided test script
+#### Using the Test Script
 
 ```bash
-
-# Make sure the server is running first, then:
 python test.py
 ```
-#### Method 3: Using curl
+
+#### Using curl
 
 ```bash
-
 curl -X POST "http://localhost:8000/predict" \
   -H "Content-Type: application/json" \
   -d '{
@@ -231,161 +257,226 @@ curl -X POST "http://localhost:8000/predict" \
   }'
 ```
 
-#### Method 4: Using Python requests
+# Cloud Deployment
 
-```python
+This project includes ready-to-use configurations for deploying to cloud platforms.
 
-import requests
+## Google Cloud Platform (GCP) Deployment
 
-url = 'http://localhost:8000/predict'
+### Prerequisites
 
-patient = {
-    'gender': 'male',
-    'age': 33.00,
-    'hypertension': 1,
-    'heart_disease': 0,
-    'ever_married': 'yes',
-    'work_type': 'private',
-    'residence_type': 'rural',
-    'avg_glucose_level': 58.12,
-    'bmi': 32.5,
-    'smoking_status': 'never_smoked',
-}
+- Google Cloud SDK (`gcloud`) installed
+- GCP project created
+- Docker installed
 
-response = requests.post(url, json=patient)
-predictions = response.json()
+### Quick Deploy to Cloud Run
 
-if predictions['stroke']:
-    print(f"The patient is likely to have a stroke with a probability of {predictions['stroke_probability']}")
-else:
-    print(f"The patient is unlikely to have a stroke with a probability of {predictions['stroke_probability']}")
+#### Option 1: Using Deployment Script
+
+```bash
+# Set your GCP project ID
+export GCP_PROJECT_ID=your-project-id
+export GCP_REGION=us-central1
+
+# Make script executable
+chmod +x deploy_gcp.sh
+
+# Run deployment
+./deploy_gcp.sh
 ```
-----------
+
+#### Option 2: Manual Deployment
+
+```bash
+# Set project
+gcloud config set project YOUR_PROJECT_ID
+
+# Build and push image
+docker build -t gcr.io/YOUR_PROJECT_ID/stroke-prediction .
+docker push gcr.io/YOUR_PROJECT_ID/stroke-prediction
+
+# Deploy to Cloud Run
+gcloud run deploy stroke-prediction \
+    --image gcr.io/YOUR_PROJECT_ID/stroke-prediction \
+    --platform managed \
+    --region us-central1 \
+    --allow-unauthenticated \
+    --memory 2Gi \
+    --cpu 1
+```
+
+### Using Cloud Build (CI/CD)
+
+```bash
+# Submit build
+gcloud builds submit --config cloudbuild.yaml
+```
+
+This will automatically build, push, and deploy your application.
+
+### Configuration Files
+
+- `app.yaml` - Cloud Run service configuration
+- `cloudbuild.yaml` - Cloud Build CI/CD configuration
+- `.gcloudignore` - Files to exclude from deployment
+
+## AWS Deployment
+
+### Prerequisites
+
+- AWS CLI installed and configured
+- Docker installed
+- AWS account with appropriate permissions
+
+### Deploy to AWS ECR
+
+#### Option 1: Using Deployment Script
+
+```bash
+# Set your AWS region
+export AWS_REGION=us-east-1
+
+# Make script executable
+chmod +x deploy_aws.sh
+
+# Run deployment
+./deploy_aws.sh
+```
+
+#### Option 2: Manual Deployment
+
+```bash
+# Get AWS account ID
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+# Create ECR repository
+aws ecr create-repository --repository-name stroke-prediction --region us-east-1
+
+# Login to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+
+# Build and push
+docker build -t stroke-prediction .
+docker tag stroke-prediction:latest $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/stroke-prediction:latest
+docker push $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/stroke-prediction:latest
+```
+
+### Deploy to ECS Fargate
+
+1. Update `aws-ecs-task-definition.json` with your ECR image URI
+2. Create ECS cluster and service:
+
+```bash
+# Create task definition
+aws ecs register-task-definition --cli-input-json file://aws-ecs-task-definition.json
+
+# Create service (adjust cluster and subnet IDs)
+aws ecs create-service \
+    --cluster your-cluster-name \
+    --service-name stroke-prediction \
+    --task-definition stroke-prediction \
+    --desired-count 1 \
+    --launch-type FARGATE \
+    --network-configuration "awsvpcConfiguration={subnets=[subnet-xxx],securityGroups=[sg-xxx],assignPublicIp=ENABLED}"
+```
+
+### Alternative AWS Services
+
+- **AWS App Runner**: Serverless container service
+- **AWS Lambda**: Using container images (for smaller workloads)
+- **Elastic Beanstalk**: Traditional PaaS deployment
 
 ## Project Structure
 
--  `mid_project.ipynb` - The notebook with the training process
-- `healthcare-dataset-stroke-data.csv` - The dataset used for this project
-- `train.py` - Train script that saves the model as `model.bin`
-- `predict.py` - Main FastAPI application with the prediction endpoint
-    
--   `test.py` - Test script to verify the API is working
-    
--   `Dockerfile` - Docker configuration for containerized deployment
-    
--   `uv.lock` - Dependency lock file for reproducible installs
-
--   `EDA/` - Exploratory Data Analysis visualizations
-    
-
-----------
+```
+mlzoomcamp_mid_project/
+├── train.py                          # Model training and comparison script
+├── predict.py                        # FastAPI application
+├── compare_models.py                 # Model comparison visualization
+├── test.py                           # API test script
+├── requirements.txt                  # Python dependencies
+├── Dockerfile                        # Docker configuration
+├── healthcare-dataset-stroke-data.csv  # Dataset
+├── model.bin                         # Best trained model (generated)
+├── app.yaml                          # GCP Cloud Run configuration
+├── cloudbuild.yaml                   # GCP Cloud Build configuration
+├── .gcloudignore                     # GCP ignore file
+├── deploy_gcp.sh                     # GCP deployment script
+├── deploy_aws.sh                     # AWS deployment script
+├── aws-ecs-task-definition.json      # AWS ECS task definition
+├── EDA/                              # Exploratory Data Analysis
+└── README.md                         # This file
+```
 
 ## Development
 
-For development, you also have access to:
+### Install Development Dependencies
 
 ```bash
-
-# Install development dependencies (like requests)
-uv sync --dev
+pip install -r requirements.txt
 ```
 
-----------
-
-## Stopping the Application
-
--   **Docker**: Press `Ctrl+C` in the terminal or run `docker stop <container_id>`
-    
--   **Local**: Press `Ctrl+C` in your terminal
-    
-
-----------
-
-## Deployment Ready
-
-The application is ready for production deployment with:
-
-**Using Docker (Recommended for production):**
+### Run Tests
 
 ```bash
-docker run -p 8000:8000 stroke-prediction-app
+python test.py
 ```
-**Using uv:**
 
-```bash
-uvicorn predict:app --host 0.0.0.0 --port $PORT
-```
-----------
-# Known limitations / next steps 
+### Model Training Workflow
+
+1. **Train Models**: `python train.py`
+2. **Visualize Results**: `python compare_models.py`
+3. **Start API**: `uvicorn predict:app --host 0.0.0.0 --port 8000`
+4. **Test API**: `python test.py`
+
+## Performance Metrics
+
+Models are evaluated using:
+- **AUC (Area Under ROC Curve)**: Overall model performance
+- **F1 Score**: Balance between precision and recall
+- **Precision**: Accuracy of positive predictions
+- **Recall**: Ability to find all positive cases
+
+The best model is selected based on the highest AUC score.
+
+## Known Limitations
 
 ### Data Quality & Model Performance
 
--   **Class Imbalance**: The dataset suffers from extreme class imbalance (only ~5% stroke cases), which poses challenges for model training and evaluation metrics interpretation.
-    
--   **Limited Features**: The dataset lacks important clinical indicators such as family history, genetic factors, medication usage, and detailed lifestyle information that could improve prediction accuracy.
-    
--   **Model Performance**: While XGBoost handles imbalanced data relatively well, the model's predictive power is limited by the available features, with most showing low mutual information with the target variable.
-    
--   **Data Quality**: Missing BMI values were imputed with the mean, which may not reflect the true distribution and could introduce bias.
+- **Class Imbalance**: The dataset suffers from extreme class imbalance (only ~5% stroke cases)
+- **Limited Features**: The dataset lacks important clinical indicators
+- **Data Quality**: Missing BMI values were imputed with the mean
 
 ### Technical Limitations
 
--   **Threshold Sensitivity**: The binary classification is highly sensitive to the probability threshold chosen, and the current threshold may need adjustment for different use cases.
-    
--   **Geographic Limitations**: The data appears to be from a specific demographic/geographic population, which may limit generalizability to other populations.
-    
--   **Temporal Factors**: The dataset lacks temporal information, making it impossible to account for changes in health metrics over time.
+- **Threshold Sensitivity**: Binary classification is sensitive to probability threshold
+- **Geographic Limitations**: Data may be from a specific demographic/geographic population
+- **Temporal Factors**: Dataset lacks temporal information
 
-### Deployment Considerations
-
--   **Computational Requirements**: The current implementation runs on a single server and may not scale efficiently for high-volume prediction requests.
-    
--   **Real-time Performance**: For clinical use, the model would require more rigorous validation and potentially faster inference times.
-
-## Next Steps & Future Improvements
+## Future Improvements
 
 ### Model Enhancement
-    
--   **Advanced Imbalance Handling**: Experiment with more sophisticated techniques like ensemble methods combined with different sampling strategies.
-    
--   **Model Interpretability**: Implement SHAP values or LIME to provide explanations for individual predictions, which is crucial for healthcare applications.
-    
--   **Hyperparameter Tuning**: Conduct more extensive hyperparameter optimization using techniques like Bayesian optimization.
-    
-
-### Data & Validation
-
--   **External Validation**: Test the model on completely independent datasets from different healthcare systems to assess generalizability.
+- **Hyperparameter Tuning**: More extensive optimization using Bayesian methods
+- **Model Interpretability**: Implement SHAP values or LIME
+- **Ensemble Methods**: Combine predictions from multiple models
 
 ### Deployment & Scalability
-
--   **API Enhancements**: Add authentication, rate limiting, and request logging for production use.
-    
--   **Container Optimization**: Create a multi-stage Docker build to reduce image size and improve security.
-    
--   **Scalable Architecture**: Deploy using Kubernetes or cloud services (AWS ECS, Google Cloud Run) for better scalability and reliability.
-    
--   **Monitoring**: Implement performance monitoring, model drift detection, and automated retraining pipelines.
-    
+- **API Enhancements**: Add authentication, rate limiting, request logging
+- **Monitoring**: Implement performance monitoring and model drift detection
+- **Auto-scaling**: Configure automatic scaling based on load
 
 ### User Experience
+- **Web Interface**: User-friendly frontend for non-technical users
+- **Batch Processing**: Endpoints for bulk predictions
+- **Confidence Intervals**: Provide prediction confidence intervals
 
--   **Web Interface**: Develop a user-friendly web frontend for non-technical users to input patient data and view results.
-    
--   **Batch Processing**: Create endpoints for bulk predictions to handle multiple patient records simultaneously.
-    
--   **Confidence Intervals**: Provide prediction confidence intervals to help users assess result reliability.
-    
+## Contributing
 
-### Clinical Integration
+Any feedback or comments are welcome!
 
--   **Risk Stratification**: Extend the model to predict different risk levels (low, medium, high) rather than just binary classification.
-    
--   **Prevention Recommendations**: Integrate with clinical guidelines to provide personalized prevention recommendations based on prediction results.
-    
--   **Regulatory Compliance**: Ensure the application meets healthcare data privacy standards (HIPAA, GDPR) if deployed in clinical settings.
-
-**Any feedback or comments are welcome <3**
-**Email:** liting.liu.work@gmail.com
+**Email:** liting.liu.work@gmail.com  
 **LinkedIn:** https://www.linkedin.com/in/liting-liu/
 
+## License
+
+This project is for educational purposes as part of the MLZoomCamp course.
