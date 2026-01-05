@@ -261,130 +261,194 @@ curl -X POST "http://localhost:8000/predict" \
 
 This project includes ready-to-use configurations for deploying to cloud platforms.
 
-## Google Cloud Platform (GCP) Deployment
+# AWS Lambda Deployment
 
-### Prerequisites
+This project can be deployed to AWS Lambda for a simple, serverless, and cost-effective solution.
 
-- Google Cloud SDK (`gcloud`) installed
-- GCP project created
-- Docker installed
-
-### Quick Deploy to Cloud Run
-
-#### Option 1: Using Deployment Script
-
-```bash
-# Set your GCP project ID
-export GCP_PROJECT_ID=your-project-id
-export GCP_REGION=us-central1
-
-# Make script executable
-chmod +x deploy_gcp.sh
-
-# Run deployment
-./deploy_gcp.sh
-```
-
-#### Option 2: Manual Deployment
-
-```bash
-# Set project
-gcloud config set project YOUR_PROJECT_ID
-
-# Build and push image
-docker build -t gcr.io/YOUR_PROJECT_ID/stroke-prediction .
-docker push gcr.io/YOUR_PROJECT_ID/stroke-prediction
-
-# Deploy to Cloud Run
-gcloud run deploy stroke-prediction \
-    --image gcr.io/YOUR_PROJECT_ID/stroke-prediction \
-    --platform managed \
-    --region us-central1 \
-    --allow-unauthenticated \
-    --memory 2Gi \
-    --cpu 1
-```
-
-### Using Cloud Build (CI/CD)
-
-```bash
-# Submit build
-gcloud builds submit --config cloudbuild.yaml
-```
-
-This will automatically build, push, and deploy your application.
-
-### Configuration Files
-
-- `app.yaml` - Cloud Run service configuration
-- `cloudbuild.yaml` - Cloud Build CI/CD configuration
-- `.gcloudignore` - Files to exclude from deployment
-
-## AWS Deployment
-
-### Prerequisites
+## Prerequisites
 
 - AWS CLI installed and configured
 - Docker installed
 - AWS account with appropriate permissions
 
-### Deploy to AWS ECR
+## Quick Deploy
 
-#### Option 1: Using Deployment Script
+### Option 1: Using Deployment Script (Recommended)
 
 ```bash
-# Set your AWS region
+# Set your AWS region (optional, defaults to us-east-1)
 export AWS_REGION=us-east-1
 
 # Make script executable
-chmod +x deploy_aws.sh
+chmod +x deploy_lambda.sh
 
 # Run deployment
-./deploy_aws.sh
+./deploy_lambda.sh
 ```
 
-#### Option 2: Manual Deployment
+### Option 2: Manual Deployment
+
+#### Step 1: Create ECR Repository
 
 ```bash
 # Get AWS account ID
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+AWS_REGION=us-east-1
 
 # Create ECR repository
-aws ecr create-repository --repository-name stroke-prediction --region us-east-1
-
-# Login to ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
-
-# Build and push
-docker build -t stroke-prediction .
-docker tag stroke-prediction:latest $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/stroke-prediction:latest
-docker push $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/stroke-prediction:latest
+aws ecr create-repository \
+    --repository-name stroke-prediction \
+    --region $AWS_REGION
 ```
 
-### Deploy to ECS Fargate
-
-1. Update `aws-ecs-task-definition.json` with your ECR image URI
-2. Create ECS cluster and service:
+#### Step 2: Build and Push Docker Image
 
 ```bash
-# Create task definition
-aws ecs register-task-definition --cli-input-json file://aws-ecs-task-definition.json
+# Login to ECR
+aws ecr get-login-password --region $AWS_REGION | \
+    docker login --username AWS --password-stdin \
+    $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-# Create service (adjust cluster and subnet IDs)
-aws ecs create-service \
-    --cluster your-cluster-name \
-    --service-name stroke-prediction \
-    --task-definition stroke-prediction \
-    --desired-count 1 \
-    --launch-type FARGATE \
-    --network-configuration "awsvpcConfiguration={subnets=[subnet-xxx],securityGroups=[sg-xxx],assignPublicIp=ENABLED}"
+# Build image for Lambda
+docker build -f Dockerfile.lambda -t stroke-prediction .
+
+# Tag and push
+docker tag stroke-prediction:latest \
+    $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/stroke-prediction:latest
+
+docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/stroke-prediction:latest
 ```
 
-### Alternative AWS Services
+#### Step 3: Create IAM Role for Lambda
 
-- **AWS App Runner**: Serverless container service
-- **AWS Lambda**: Using container images (for smaller workloads)
-- **Elastic Beanstalk**: Traditional PaaS deployment
+```bash
+# Create trust policy
+cat > lambda-trust-policy.json << EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+
+# Create IAM role
+aws iam create-role \
+    --role-name stroke-prediction-lambda-role \
+    --assume-role-policy-document file://lambda-trust-policy.json
+
+# Attach basic execution policy
+aws iam attach-role-policy \
+    --role-name stroke-prediction-lambda-role \
+    --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+# Wait for role to be ready
+sleep 10
+```
+
+#### Step 4: Create Lambda Function
+
+```bash
+# Create Lambda function
+aws lambda create-function \
+    --function-name stroke-prediction \
+    --package-type Image \
+    --code ImageUri=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/stroke-prediction:latest \
+    --role arn:aws:iam::$AWS_ACCOUNT_ID:role/stroke-prediction-lambda-role \
+    --timeout 30 \
+    --memory-size 512 \
+    --region $AWS_REGION
+```
+
+#### Step 5: Create Function URL (Public API)
+
+```bash
+# Create function URL
+aws lambda create-function-url-config \
+    --function-name stroke-prediction \
+    --auth-type NONE \
+    --region $AWS_REGION
+
+# Add permissions for public access
+aws lambda add-permission \
+    --function-name stroke-prediction \
+    --statement-id FunctionURLAllowPublicAccess \
+    --action lambda:InvokeFunctionUrl \
+    --principal "*" \
+    --function-url-auth-type NONE \
+    --region $AWS_REGION
+```
+
+#### Step 6: Get Function URL
+
+```bash
+# Get the function URL
+aws lambda get-function-url-config \
+    --function-name stroke-prediction \
+    --region $AWS_REGION \
+    --query 'FunctionUrl' \
+    --output text
+```
+
+Your API will be available at: `https://[unique-id].lambda-url.[region].on.aws/`
+
+## Testing Your Lambda Deployment
+
+### Using curl
+
+```bash
+# Replace with your actual function URL
+FUNCTION_URL="https://your-unique-id.lambda-url.us-east-1.on.aws"
+
+curl -X POST "$FUNCTION_URL/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "gender": "male",
+    "age": 33.00,
+    "hypertension": 1,
+    "heart_disease": 0,
+    "ever_married": "yes",
+    "work_type": "private",
+    "residence_type": "rural",
+    "avg_glucose_level": 58.12,
+    "bmi": 32.5,
+    "smoking_status": "never_smoked"
+  }'
+```
+
+### Using Python
+
+```python
+import requests
+import json
+
+FUNCTION_URL = "https://your-unique-id.lambda-url.us-east-1.on.aws"
+
+patient_data = {
+    "gender": "male",
+    "age": 33.00,
+    "hypertension": 1,
+    "heart_disease": 0,
+    "ever_married": "yes",
+    "work_type": "private",
+    "residence_type": "rural",
+    "avg_glucose_level": 58.12,
+    "bmi": 32.5,
+    "smoking_status": "never_smoked"
+}
+
+response = requests.post(f"{FUNCTION_URL}/predict", json=patient_data)
+print(json.dumps(response.json(), indent=2))
+```
+
+
+
 
 ## Project Structure
 
@@ -398,12 +462,6 @@ mlzoomcamp_mid_project/
 ├── Dockerfile                        # Docker configuration
 ├── healthcare-dataset-stroke-data.csv  # Dataset
 ├── model.bin                         # Best trained model (generated)
-├── app.yaml                          # GCP Cloud Run configuration
-├── cloudbuild.yaml                   # GCP Cloud Build configuration
-├── .gcloudignore                     # GCP ignore file
-├── deploy_gcp.sh                     # GCP deployment script
-├── deploy_aws.sh                     # AWS deployment script
-├── aws-ecs-task-definition.json      # AWS ECS task definition
 ├── EDA/                              # Exploratory Data Analysis
 └── README.md                         # This file
 ```
