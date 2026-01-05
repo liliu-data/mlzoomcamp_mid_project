@@ -15,5 +15,7 @@ resources:
   memory_gb: 2
   disk_size_gb: 10
 
-entrypoint: uvicorn predict:app --host 0.0.0.0 --port $PORT
+# For App Engine Standard Python 3, use Python entrypoint
+# The PORT environment variable will be automatically set by App Engine
+entrypoint: python main.py
 

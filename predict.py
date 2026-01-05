@@ -113,7 +113,7 @@ def predict_all_models(patient: PatientData) -> PredictWithModelResponse:
                 else:
                     raise HTTPException(
                         status_code=404, 
-                        detail="All models file not found. Run train.py to generate it."
+                        detail="All models file is malformed. Run train.py to regenerate it."
                     )
         except FileNotFoundError:
             # Fallback to just the best model
@@ -140,6 +140,9 @@ def predict_all_models(patient: PatientData) -> PredictWithModelResponse:
             model_used=model_name,
             all_models=results
         )
+    except HTTPException:
+        # Re-raise HTTPException to preserve status code (e.g., 404)
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
