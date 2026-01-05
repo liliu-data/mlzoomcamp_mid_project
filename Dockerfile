@@ -15,10 +15,13 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
-COPY ["predict.py", "model.bin", "./"]
+COPY ["predict.py", "model.bin", "start.sh", "./"]
+
+# Make startup script executable
+RUN chmod +x start.sh
 
 # Expose port (Cloud Run will set PORT env var)
 EXPOSE 8080
 
-# Use environment variable for port (Cloud Run compatibility)
-CMD exec uvicorn predict:app --host 0.0.0.0 --port ${PORT:-8080}
+# Use startup script to handle PORT variable
+CMD ["./start.sh"]

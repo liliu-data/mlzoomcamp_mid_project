@@ -49,7 +49,13 @@ try:
             model_name = "XGBoost"
     print(f"Loaded model: {model_name}")
 except FileNotFoundError:
+    import sys
+    print("ERROR: Model file 'model.bin' not found. Please run train.py first.", file=sys.stderr)
     raise FileNotFoundError("Model file 'model.bin' not found. Please run train.py first.")
+except Exception as e:
+    import sys
+    print(f"ERROR: Failed to load model: {e}", file=sys.stderr)
+    raise
 
 def predict_single(patient: PatientData, model_obj, vectorizer, model_type: str):
     """Make prediction using a specific model."""

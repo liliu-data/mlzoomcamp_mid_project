@@ -1,0 +1,25 @@
+# Dockerfile for AWS Lambda deployment
+FROM public.ecr.aws/lambda/python:3.11
+
+# Copy requirements and install dependencies
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install --no-cache-dir -r ${LAMBDA_TASK_ROOT}/requirements.txt
+
+# Install Mangum for Lambda-FastAPI integration
+RUN pip install --no-cache-dir mangum
+
+# Copy application code
+COPY predict.py ${LAMBDA_TASK_ROOT}/
+COPY train.py ${LAMBDA_TASK_ROOT}/
+COPY healthcare-dataset-stroke-data.csv ${LAMBDA_TASK_ROOT}/
+
+# Copy model if it exists, otherwise train it
+COPY model.bin ${LAMBDA_TASK_ROOT}/ 2>/dev/null || true
+
+# If model doesn't exist, train it during build
+RUN if [ ! -f "${LAMBDA_TASK_ROOT}/model.bin" ]; then \
+    cd ${LAMBDA_TASK_ROOT} && python train.py; \
+    fi
+
+# Set the CMD to your handler
+CMD [ "lambda_handler.handler" ]
