@@ -184,9 +184,9 @@ Predict stroke probability using the best trained model.
 **Response:**
 ```json
 {
-    "stroke_probability": 0.0737,
-    "stroke": false,
-    "model_used": "XGBoost"
+  "stroke_probability": 0.06694265033464096,
+  "stroke": false,
+  "model_used": "Logistic Regression"
 }
 ```
 
@@ -199,27 +199,27 @@ Get predictions from all available models for comparison.
 **Response:**
 ```json
 {
-    "stroke_probability": 0.0737,
-    "stroke": false,
-    "model_used": "XGBoost",
-    "all_models": {
-        "Logistic Regression": {
-            "stroke_probability": 0.0650,
-            "stroke": false
-        },
-        "Random Forest": {
-            "stroke_probability": 0.0710,
-            "stroke": false
-        },
-        "XGBoost": {
-            "stroke_probability": 0.0737,
-            "stroke": false
-        },
-        "LightGBM": {
-            "stroke_probability": 0.0720,
-            "stroke": false
-        }
+  "stroke_probability": 0.06694265033464096,
+  "stroke": false,
+  "model_used": "Logistic Regression",
+  "all_models": {
+    "Logistic Regression": {
+      "stroke_probability": 0.06694265033464096,
+      "stroke": false
+    },
+    "Random Forest": {
+      "stroke_probability": 0.1120424756099942,
+      "stroke": false
+    },
+    "XGBoost": {
+      "stroke_probability": 0.07373718172311783,
+      "stroke": false
+    },
+    "LightGBM": {
+      "stroke_probability": 0.035953917347134406,
+      "stroke": false
     }
+  }
 }
 ```
 
