@@ -1,6 +1,6 @@
 # Welcome to MLZoomCamp Capstone 1 Project: Stroke Prediction !
 
-This project aims to build an end-to-end product that predicts stroke occurrences using machine learning techniques. **This revised version includes comprehensive model comparison (regression vs tree-based models) and cloud deployment capabilities.**
+This project aims to build an end-to-end product that predicts stroke occurrences using machine learning techniques. **This is a revised version from the mid-term project of ML Zoomcamp to include comprehensive model comparison (regression vs tree-based models) and cloud deployment capabilities.**
 
 ## 🆕 What's New in This Revision
 
